@@ -48,191 +48,171 @@ SLACK_ICON = (
 
 AUTH_CSS = """
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
     section[data-testid="stSidebar"] { display: none !important; }
     header[data-testid="stHeader"] { display: none !important; }
     #MainMenu { visibility: hidden; }
     footer { visibility: hidden; }
 
+    html, body, [class*="st-"] {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    }
+
     .block-container {
-        max-width: 400px !important;
-        padding-top: 10vh !important;
+        max-width: 360px !important;
+        padding-top: 15vh !important;
         position: relative;
         z-index: 2;
     }
 
     /* ── Animated background ──────────────────────────── */
     .auth-bg {
-        position: fixed;
-        inset: 0;
-        z-index: 0;
-        overflow: hidden;
-        pointer-events: none;
+        position: fixed; inset: 0; z-index: 0;
+        overflow: hidden; pointer-events: none;
     }
     .auth-bg::before {
-        content: "";
-        position: absolute;
-        width: 600px; height: 600px;
-        top: -200px; right: -200px;
-        background: radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%);
+        content: ""; position: absolute;
+        width: 500px; height: 500px; top: -180px; right: -180px;
+        background: radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 70%);
         animation: pulse 8s ease-in-out infinite;
     }
     .auth-bg::after {
-        content: "";
-        position: absolute;
-        width: 500px; height: 500px;
-        bottom: -150px; left: -150px;
-        background: radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 70%);
+        content: ""; position: absolute;
+        width: 400px; height: 400px; bottom: -120px; left: -120px;
+        background: radial-gradient(circle, rgba(99,102,241,0.04) 0%, transparent 70%);
         animation: pulse 10s ease-in-out infinite reverse;
     }
     @keyframes pulse {
-        0%, 100% { transform: scale(1); opacity: 0.7; }
-        50% { transform: scale(1.15); opacity: 1; }
+        0%, 100% { transform: scale(1); opacity: 0.6; }
+        50% { transform: scale(1.1); opacity: 1; }
     }
 
     /* Floating doc particles */
-    .auth-particles {
-        position: fixed;
-        inset: 0;
-        z-index: 1;
-        pointer-events: none;
-    }
+    .auth-particles { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
     .auth-particles .p {
-        position: absolute;
-        border: 1px solid rgba(124,58,237,0.12);
-        border-radius: 4px;
-        animation: float linear infinite;
-        opacity: 0;
+        position: absolute; border: 1px solid rgba(124,58,237,0.08);
+        border-radius: 3px; animation: float linear infinite; opacity: 0;
     }
     .auth-particles .p::after {
-        content: "";
-        position: absolute;
-        top: 30%; left: 20%; right: 20%;
-        height: 1px;
-        background: rgba(124,58,237,0.15);
-        box-shadow: 0 4px 0 rgba(124,58,237,0.1), 0 8px 0 rgba(124,58,237,0.08);
+        content: ""; position: absolute;
+        top: 30%; left: 20%; right: 20%; height: 1px;
+        background: rgba(124,58,237,0.1);
+        box-shadow: 0 3px 0 rgba(124,58,237,0.07), 0 6px 0 rgba(124,58,237,0.05);
     }
     @keyframes float {
         0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-        10% { opacity: 0.6; }
-        90% { opacity: 0.6; }
-        100% { transform: translateY(-100px) rotate(8deg); opacity: 0; }
+        10% { opacity: 0.5; }
+        90% { opacity: 0.5; }
+        100% { transform: translateY(-80px) rotate(6deg); opacity: 0; }
     }
-    .auth-particles .p:nth-child(1) { width:24px;height:32px; left:10%; animation-duration:18s; animation-delay:0s; }
-    .auth-particles .p:nth-child(2) { width:18px;height:24px; left:25%; animation-duration:22s; animation-delay:3s; }
-    .auth-particles .p:nth-child(3) { width:20px;height:28px; left:45%; animation-duration:20s; animation-delay:6s; }
-    .auth-particles .p:nth-child(4) { width:16px;height:22px; left:65%; animation-duration:24s; animation-delay:2s; }
-    .auth-particles .p:nth-child(5) { width:22px;height:30px; left:80%; animation-duration:19s; animation-delay:8s; }
-    .auth-particles .p:nth-child(6) { width:14px;height:20px; left:90%; animation-duration:25s; animation-delay:5s; }
-    .auth-particles .p:nth-child(7) { width:20px;height:26px; left:35%; animation-duration:21s; animation-delay:10s; }
+    .auth-particles .p:nth-child(1) { width:20px;height:26px; left:8%; animation-duration:20s; animation-delay:0s; }
+    .auth-particles .p:nth-child(2) { width:14px;height:18px; left:22%; animation-duration:25s; animation-delay:4s; }
+    .auth-particles .p:nth-child(3) { width:16px;height:22px; left:42%; animation-duration:22s; animation-delay:7s; }
+    .auth-particles .p:nth-child(4) { width:12px;height:16px; left:62%; animation-duration:26s; animation-delay:2s; }
+    .auth-particles .p:nth-child(5) { width:18px;height:24px; left:78%; animation-duration:21s; animation-delay:9s; }
+    .auth-particles .p:nth-child(6) { width:10px;height:14px; left:88%; animation-duration:28s; animation-delay:5s; }
+    .auth-particles .p:nth-child(7) { width:14px;height:20px; left:35%; animation-duration:23s; animation-delay:11s; }
 
     /* ── Logo + heading ───────────────────────────────── */
-    .auth-logo { text-align: center; margin-bottom: 2rem; }
-    .auth-logo svg { width: 40px; height: 40px; }
+    .auth-logo { text-align: center; margin-bottom: 1.5rem; }
+    .auth-logo svg { width: 32px; height: 32px; }
     .auth-heading {
         text-align: center;
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #f0f0f2;
-        margin-bottom: 1.75rem;
-        letter-spacing: -0.02em;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #e4e4e7;
+        margin-bottom: 1.5rem;
+        letter-spacing: -0.01em;
     }
 
     /* ── Inputs ───────────────────────────────────────── */
     .stTextInput > div > div > input {
-        background: rgba(9,9,11,0.8) !important;
-        backdrop-filter: blur(8px);
+        background: transparent !important;
         border: 1px solid #27272a !important;
-        border-radius: 10px !important;
+        border-radius: 6px !important;
         color: #f0f0f2 !important;
-        font-size: 0.9rem !important;
-        padding: 0.75rem 1rem !important;
-        transition: border-color 0.15s, box-shadow 0.15s;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.82rem !important;
+        padding: 0.6rem 0.75rem !important;
+        transition: border-color 0.12s;
     }
     .stTextInput > div > div > input:focus {
         border-color: #7c3aed !important;
-        box-shadow: 0 0 0 3px rgba(124,58,237,0.1) !important;
+        box-shadow: none !important;
     }
-    .stTextInput > div > div > input::placeholder { color: #52525b !important; }
+    .stTextInput > div > div > input::placeholder { color: #3f3f46 !important; }
 
     /* ── Buttons ──────────────────────────────────────── */
     .stButton > button {
         width: 100% !important;
-        padding: 0.75rem 1rem !important;
-        border-radius: 10px !important;
-        font-size: 0.9rem !important;
+        padding: 0.55rem 0.75rem !important;
+        border-radius: 6px !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.82rem !important;
         font-weight: 500 !important;
-        transition: all 0.15s ease;
+        transition: all 0.1s ease;
     }
     .stButton > button[kind="primary"] {
         background: #f0f0f2 !important;
         color: #09090b !important;
         border: none !important;
-        font-weight: 600 !important;
     }
     .stButton > button[kind="primary"]:hover {
         background: #fff !important;
-        box-shadow: 0 0 20px rgba(124,58,237,0.15) !important;
     }
     .stButton > button:not([kind="primary"]) {
-        background: rgba(24,24,27,0.6) !important;
-        backdrop-filter: blur(8px);
+        background: transparent !important;
         border: 1px solid #27272a !important;
-        color: #a1a1aa !important;
+        color: #71717a !important;
     }
     .stButton > button:not([kind="primary"]):hover {
         border-color: #3f3f46 !important;
-        color: #f0f0f2 !important;
-        background: rgba(24,24,27,0.9) !important;
+        color: #e4e4e7 !important;
     }
 
-    /* ── Google button ────────────────────────────────── */
+    /* ── OAuth buttons ────────────────────────────────── */
     .g-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.65rem;
-        width: 100%;
-        padding: 0.75rem 1rem;
-        background: rgba(24,24,27,0.6);
-        backdrop-filter: blur(8px);
+        display: flex; align-items: center; justify-content: center;
+        gap: 0.5rem; width: 100%;
+        padding: 0.55rem 0.75rem;
+        background: transparent;
         border: 1px solid #27272a;
-        border-radius: 10px;
-        font-size: 0.9rem;
-        font-weight: 500;
-        color: #a1a1aa;
-        cursor: pointer;
-        text-decoration: none;
-        transition: all 0.15s;
+        border-radius: 6px;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.82rem;
+        font-weight: 400;
+        color: #71717a;
+        cursor: pointer; text-decoration: none;
+        transition: all 0.1s;
     }
-    .g-btn:hover { border-color: #3f3f46; color: #f0f0f2; background: rgba(24,24,27,0.9); }
+    .g-btn:hover { border-color: #3f3f46; color: #e4e4e7; }
 
     /* ── Separator ────────────────────────────────────── */
     .sep {
         display: flex; align-items: center;
-        margin: 1.25rem 0; color: #3f3f46; font-size: 0.65rem;
-        letter-spacing: 0.05em; text-transform: uppercase;
+        margin: 1rem 0; color: #27272a; font-size: 0.6rem;
+        letter-spacing: 0.04em; text-transform: uppercase;
+        font-family: 'Inter', sans-serif;
     }
-    .sep::before, .sep::after { content: ""; flex: 1; height: 1px; background: #27272a; }
-    .sep::before { margin-right: 0.75rem; }
-    .sep::after { margin-left: 0.75rem; }
+    .sep::before, .sep::after { content: ""; flex: 1; height: 1px; background: #1f1f23; }
+    .sep::before { margin-right: 0.6rem; }
+    .sep::after { margin-left: 0.6rem; }
 
     /* ── Footer ───────────────────────────────────────── */
-    .auth-switch {
-        text-align: center; margin-top: 1.5rem;
-    }
+    .auth-switch { text-align: center; margin-top: 1.25rem; }
     .auth-foot {
-        text-align: center; margin-top: 2.5rem;
-        font-size: 0.65rem; color: #3f3f46; line-height: 1.5;
+        text-align: center; margin-top: 2rem;
+        font-size: 0.6rem; color: #27272a; line-height: 1.4;
     }
 
     /* ── Status cards ─────────────────────────────────── */
     .wait-card {
-        background: rgba(24,24,27,0.8); backdrop-filter: blur(8px);
-        border: 1px solid #27272a;
-        border-radius: 12px; padding: 2rem; text-align: center; margin-top: 1rem;
+        background: #18181b; border: 1px solid #27272a;
+        border-radius: 8px; padding: 1.5rem; text-align: center; margin-top: 1rem;
     }
-    .wait-card h3 { font-size: 0.95rem; font-weight: 600; color: #f0f0f2; margin: 0.5rem 0 0.3rem; }
-    .wait-card p { color: #71717a; font-size: 0.8rem; line-height: 1.5; margin: 0; }
+    .wait-card h3 { font-size: 0.85rem; font-weight: 500; color: #e4e4e7; margin: 0.4rem 0 0.25rem; }
+    .wait-card p { color: #52525b; font-size: 0.75rem; line-height: 1.5; margin: 0; }
 </style>
 """
 
@@ -419,7 +399,7 @@ def _show_signup():
 def _show_org_setup():
     st.markdown(AUTH_CSS, unsafe_allow_html=True)
     st.markdown(AUTH_BG, unsafe_allow_html=True)
-    st.markdown('<style>.block-container { max-width: 440px !important; }</style>', unsafe_allow_html=True)
+    st.markdown('<style>.block-container { max-width: 380px !important; }</style>', unsafe_allow_html=True)
     st.markdown(f'<div class="auth-logo">{LOGO_SVG}</div>', unsafe_allow_html=True)
     st.markdown('<div class="auth-heading">Set up your workspace</div>', unsafe_allow_html=True)
 
