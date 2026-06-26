@@ -126,9 +126,9 @@ CREATE POLICY "Org members can insert analyses"
     ON analyses FOR INSERT
     WITH CHECK (org_id = get_user_org_id());
 
--- 6. Grant access to anon + authenticated roles
-GRANT ALL ON organizations TO anon, authenticated;
-GRANT ALL ON profiles TO anon, authenticated;
-GRANT ALL ON candidates TO anon, authenticated;
-GRANT ALL ON jobs TO anon, authenticated;
-GRANT ALL ON analyses TO anon, authenticated;
+-- 7. Grant access to all roles
+GRANT ALL ON organizations TO anon, authenticated, service_role;
+GRANT ALL ON profiles TO anon, authenticated, service_role;
+GRANT ALL ON candidates TO anon, authenticated, service_role;
+GRANT ALL ON jobs TO anon, authenticated, service_role;
+GRANT ALL ON analyses TO anon, authenticated, service_role;

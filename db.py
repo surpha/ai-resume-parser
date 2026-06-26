@@ -49,6 +49,12 @@ def get_supabase() -> Client:
     return _client
 
 
+def reset_client():
+    """Force re-creation of the Supabase client (e.g. after config change)."""
+    global _client
+    _client = None
+
+
 # ─── Candidates ──────────────────────────────────────────────────────────
 
 def insert_candidate(name: str, email: str | None, phone: str | None,
