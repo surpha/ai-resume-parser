@@ -1,24 +1,27 @@
 """
-Dashboard page — Rich visualization of analysis results.
+Dashboard page — Detailed visualization of analysis results.
 """
 
 import plotly.graph_objects as go
 import streamlit as st
 
+from auth import require_auth
 from db import get_all_analyses, get_all_candidates, get_all_jobs
 from styles import apply_theme, score_color, severity_icon
 
-st.set_page_config(page_title="Dashboard | ResumeAI", page_icon="◆", layout="wide")
-apply_theme()
+st.set_page_config(page_title="Dashboard - Resume Scan AI", page_icon="◆", layout="wide")
 
-st.markdown('<h1 style="font-size:2rem;margin-bottom:0">Dashboard</h1>', unsafe_allow_html=True)
-st.markdown('<p class="page-subtitle">Detailed analysis results</p>', unsafe_allow_html=True)
+user = require_auth()
+apply_theme(username=user["email"], name=user["full_name"])
+
+st.markdown("# Dashboard")
+st.markdown('<p class="page-subtitle">Detailed analysis results and insights</p>', unsafe_allow_html=True)
 
 # ── Data ──────────────────────────────────────────────────────────────────
 try:
-    analyses = get_all_analyses()
-    candidates = get_all_candidates()
-    jobs = get_all_jobs()
+    analyses = get_all_analyses(org_id=user["org_id"])
+    candidates = get_all_candidates(org_id=user["org_id"])
+    jobs = get_all_jobs(org_id=user["org_id"])
 except Exception as e:
     st.error(f"Could not load data: {e}")
     st.stop()
@@ -26,7 +29,7 @@ except Exception as e:
 if not analyses:
     st.markdown(
         '<div class="card" style="text-align:center;padding:3rem">'
-        '<div style="color:#6b7280">No analyses yet. Go to <b>Analyze</b> to run your first comparison.</div>'
+        '<div style="color:#71717a">No analyses yet. Go to <b>Analyze</b> to run your first comparison.</div>'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -62,12 +65,12 @@ with col_score:
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=score,
-        number={"suffix": "", "font": {"size": 42, "color": "#e2e2e5"}},
+        number={"suffix": "", "font": {"size": 42, "color": "#f0f0f2"}},
         gauge={
-            "axis": {"range": [0, 100], "tickwidth": 1, "tickcolor": "#2d2d33",
-                     "tickfont": {"color": "#6b7280"}},
+            "axis": {"range": [0, 100], "tickwidth": 1, "tickcolor": "#27272a",
+                     "tickfont": {"color": "#71717a"}},
             "bar": {"color": sc, "thickness": 0.75},
-            "bgcolor": "#1a1a1f",
+            "bgcolor": "#18181b",
             "borderwidth": 0,
             "steps": [
                 {"range": [0, 40], "color": "rgba(248,113,113,0.08)"},
@@ -82,7 +85,7 @@ with col_score:
         margin=dict(t=30, b=0, l=25, r=25),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font={"color": "#e2e2e5"},
+        font={"color": "#f0f0f2"},
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -95,7 +98,7 @@ with col_summary:
     )
     st.markdown(f"**{fit['summary']}**")
     st.markdown(
-        f'<div style="color:#9ca3af;font-size:0.9rem;margin-top:0.25rem">'
+        f'<div style="color:#a1a1aa;font-size:0.9rem;margin-top:0.25rem">'
         f'{r.get("recommendation_summary", "")}</div>',
         unsafe_allow_html=True,
     )
@@ -145,7 +148,7 @@ if skill_matches:
         fig_r.add_trace(go.Scatterpolar(
             r=values_c, theta=labels_c,
             fill="toself",
-            fillcolor="rgba(167,139,250,0.12)",
+            fillcolor="rgba(124,58,237,0.1)",
             line=dict(color="#a78bfa", width=2),
         ))
         fig_r.update_layout(
@@ -153,11 +156,11 @@ if skill_matches:
                 bgcolor="rgba(0,0,0,0)",
                 radialaxis=dict(
                     visible=True, range=[0, 4], showticklabels=False,
-                    gridcolor="#2d2d33",
+                    gridcolor="#27272a",
                 ),
                 angularaxis=dict(
-                    gridcolor="#2d2d33",
-                    tickfont=dict(color="#9ca3af", size=11),
+                    gridcolor="#27272a",
+                    tickfont=dict(color="#a1a1aa", size=11),
                 ),
             ),
             showlegend=False,
@@ -179,7 +182,7 @@ if skill_matches:
                     st.markdown(f'<span class="pill pill-green">{s.get("candidate_proficiency", "—")}</span>',
                                 unsafe_allow_html=True)
                     if s.get("evidence"):
-                        st.markdown(f'<div style="color:#9ca3af;font-size:0.85rem">{s["evidence"]}</div>',
+                        st.markdown(f'<div style="color:#a1a1aa;font-size:0.85rem">{s["evidence"]}</div>',
                                     unsafe_allow_html=True)
 
     with col_p:
@@ -190,7 +193,7 @@ if skill_matches:
                     st.markdown(f'<span class="pill pill-yellow">{s.get("candidate_proficiency", "—")}</span>',
                                 unsafe_allow_html=True)
                     if s.get("evidence"):
-                        st.markdown(f'<div style="color:#9ca3af;font-size:0.85rem">{s["evidence"]}</div>',
+                        st.markdown(f'<div style="color:#a1a1aa;font-size:0.85rem">{s["evidence"]}</div>',
                                     unsafe_allow_html=True)
 
     with col_x:
@@ -230,11 +233,11 @@ with col_cg:
     fig_c = go.Figure(go.Indicator(
         mode="gauge+number",
         value=cred_val,
-        number={"font": {"size": 30, "color": "#e2e2e5"}},
+        number={"font": {"size": 30, "color": "#f0f0f2"}},
         gauge={
-            "axis": {"range": [0, 100], "tickfont": {"color": "#6b7280"}},
+            "axis": {"range": [0, 100], "tickfont": {"color": "#71717a"}},
             "bar": {"color": cred_c, "thickness": 0.7},
-            "bgcolor": "#1a1a1f",
+            "bgcolor": "#18181b",
             "borderwidth": 0,
         },
     ))
@@ -255,8 +258,8 @@ with col_cf:
             st.markdown(
                 f'<div class="flag-{sev}">'
                 f'<span style="font-weight:600">{icon} {sev.upper()}</span>'
-                f'<div style="color:#e2e2e5;margin-top:0.2rem">"{f.get("claim", "")}"</div>'
-                f'<div style="color:#6b7280;font-size:0.85rem;margin-top:0.15rem">{f.get("concern", "")}</div>'
+                f'<div style="color:#f0f0f2;margin-top:0.2rem">"{f.get("claim", "")}"</div>'
+                f'<div style="color:#71717a;font-size:0.85rem;margin-top:0.15rem">{f.get("concern", "")}</div>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -287,7 +290,7 @@ if gaps:
             st.markdown(
                 f'<div class="flag-{sev}">'
                 f'<span style="font-weight:600;font-size:0.85rem">{icon} {gtype}</span>'
-                f'<div style="color:#9ca3af;font-size:0.88rem;margin-top:0.15rem">{g.get("description", "")}</div>'
+                f'<div style="color:#a1a1aa;font-size:0.88rem;margin-top:0.15rem">{g.get("description", "")}</div>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -299,7 +302,7 @@ if gaps:
             if q:
                 st.markdown(
                     f'<div class="accent-bar">'
-                    f'<span style="color:#a78bfa;font-weight:600;font-size:0.85rem">{i}.</span> {q}'
+                    f'<span style="color:#7c3aed;font-weight:600;font-size:0.85rem">{i}.</span> {q}'
                     f'</div>',
                     unsafe_allow_html=True,
                 )
@@ -313,7 +316,7 @@ else:
 # ── Footer ────────────────────────────────────────────────────────────────
 st.markdown("---")
 st.markdown(
-    '<div style="color:#6b7280;font-size:0.8rem;text-align:center">'
+    '<div style="color:#71717a;font-size:0.8rem;text-align:center">'
     'AI-generated analysis. Use as a complement to — not a substitute for — human judgment.'
     '</div>',
     unsafe_allow_html=True,

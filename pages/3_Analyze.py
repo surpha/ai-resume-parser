@@ -1,9 +1,10 @@
 """
-Analyze page — Pick a candidate + job, run semantic comparison.
+Analyze page — Run semantic comparison between candidate and role.
 """
 
 import streamlit as st
 
+from auth import require_auth
 from db import (
     get_all_candidates,
     get_all_jobs,
@@ -14,16 +15,18 @@ from db import (
 from parser import analyze
 from styles import apply_theme, score_color
 
-st.set_page_config(page_title="Analyze | ResumeAI", page_icon="◆", layout="wide")
-apply_theme()
+st.set_page_config(page_title="Analyze - Resume Scan AI", page_icon="◆", layout="wide")
 
-st.markdown('<h1 style="font-size:2rem;margin-bottom:0">Analyze</h1>', unsafe_allow_html=True)
+user = require_auth()
+apply_theme(username=user["email"], name=user["full_name"])
+
+st.markdown("# Analyze")
 st.markdown('<p class="page-subtitle">Run a semantic comparison between a candidate and a role</p>', unsafe_allow_html=True)
 
 # ── Load data ─────────────────────────────────────────────────────────────
 try:
-    candidates = get_all_candidates()
-    jobs = get_all_jobs()
+    candidates = get_all_candidates(org_id=user["org_id"])
+    jobs = get_all_jobs(org_id=user["org_id"])
 except Exception as e:
     st.error(f"Could not load data: {e}")
     st.stop()
@@ -31,7 +34,7 @@ except Exception as e:
 if not candidates:
     st.markdown(
         '<div class="card" style="text-align:center;padding:2rem">'
-        '<div style="color:#6b7280">No candidates found. Go to <b>Candidates</b> to upload a resume first.</div>'
+        '<div style="color:#71717a">No candidates found. Go to <b>Candidates</b> to upload a resume first.</div>'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -40,7 +43,7 @@ if not candidates:
 if not jobs:
     st.markdown(
         '<div class="card" style="text-align:center;padding:2rem">'
-        '<div style="color:#6b7280">No jobs found. Go to <b>Jobs</b> to add a role first.</div>'
+        '<div style="color:#71717a">No jobs found. Go to <b>Jobs</b> to add a role first.</div>'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -66,10 +69,10 @@ with col1:
         p = sel_cand["parsed_profile"]
         st.markdown(
             f'<div class="card">'
-            f'<div style="font-weight:600;color:#e2e2e5">{p.get("contact", {}).get("name", sel_cand["name"])}</div>'
-            f'<div style="color:#6b7280;font-size:0.85rem">'
+            f'<div style="font-weight:600;color:#f0f0f2">{p.get("contact", {}).get("name", sel_cand["name"])}</div>'
+            f'<div style="color:#71717a;font-size:0.85rem">'
             f'{p.get("total_years_experience", "?")} yrs · {len(p.get("skills", []))} skills</div>'
-            f'<div style="color:#9ca3af;font-size:0.85rem;margin-top:0.25rem">'
+            f'<div style="color:#a1a1aa;font-size:0.85rem;margin-top:0.25rem">'
             f'{p.get("career_trajectory", "")}</div>'
             f'</div>',
             unsafe_allow_html=True,
@@ -96,8 +99,8 @@ with col2:
         )
         st.markdown(
             f'<div class="card">'
-            f'<div style="font-weight:600;color:#e2e2e5">{sel_job["title"]}</div>'
-            f'<div style="color:#6b7280;font-size:0.85rem">'
+            f'<div style="font-weight:600;color:#f0f0f2">{sel_job["title"]}</div>'
+            f'<div style="color:#71717a;font-size:0.85rem">'
             f'{req.get("seniority_level", "?").title()} · '
             f'{len(req.get("required_skills", []))} required skills</div>'
             f'<div style="margin-top:0.4rem">{skills_pills}</div>'
@@ -138,6 +141,7 @@ if st.button("Run Analysis", use_container_width=True, type="primary"):
                 job_id=selected_job_id,
                 result=result.model_dump(),
                 fit_score=result.fit_score.score,
+                org_id=user["org_id"],
             )
             status.update(label="Complete", state="complete")
         except Exception as e:
@@ -156,12 +160,12 @@ if st.button("Run Analysis", use_container_width=True, type="primary"):
         f'<span style="font-size:2rem;font-weight:700;color:{sc}">{score}</span>'
         f'<span class="rec-badge rec-{result.overall_recommendation}">{rec}</span>'
         f'</div>'
-        f'<div style="color:#9ca3af;margin-top:0.5rem">{result.fit_score.summary}</div>'
+        f'<div style="color:#a1a1aa;margin-top:0.5rem">{result.fit_score.summary}</div>'
         f'</div>',
         unsafe_allow_html=True,
     )
     st.markdown(
-        '<div style="color:#6b7280;font-size:0.85rem;margin-top:0.5rem">'
+        '<div style="color:#71717a;font-size:0.85rem;margin-top:0.5rem">'
         'Go to <b>Dashboard</b> for the full detailed breakdown.</div>',
         unsafe_allow_html=True,
     )

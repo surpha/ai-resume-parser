@@ -4,15 +4,18 @@ Jobs page — Add, view, and manage job descriptions.
 
 import streamlit as st
 
+from auth import require_auth
 from db import delete_job, get_all_jobs, insert_job
 from parser import parse_job
 from styles import apply_theme
 
-st.set_page_config(page_title="Jobs | ResumeAI", page_icon="◆", layout="wide")
-apply_theme()
+st.set_page_config(page_title="Jobs - Resume Scan AI", page_icon="◆", layout="wide")
 
-st.markdown('<h1 style="font-size:2rem;margin-bottom:0">Jobs</h1>', unsafe_allow_html=True)
-st.markdown('<p class="page-subtitle">Manage the roles you\'re hiring for</p>', unsafe_allow_html=True)
+user = require_auth()
+apply_theme(username=user["email"], name=user["full_name"])
+
+st.markdown("# Jobs")
+st.markdown('<p class="page-subtitle">Manage the roles you are hiring for</p>', unsafe_allow_html=True)
 
 # ── Add new job ───────────────────────────────────────────────────────────
 with st.expander("Add New Job", expanded=not bool(st.session_state.get("_jobs_loaded"))):
@@ -44,6 +47,7 @@ with st.expander("Add New Job", expanded=not bool(st.session_state.get("_jobs_lo
                         company=company.strip() or None,
                         description=description.strip(),
                         parsed_requirements=parsed.model_dump(),
+                        org_id=user["org_id"],
                     )
                     status.update(label="Job added", state="complete")
                     st.rerun()
@@ -55,7 +59,7 @@ with st.expander("Add New Job", expanded=not bool(st.session_state.get("_jobs_lo
 st.markdown("---")
 
 try:
-    jobs = get_all_jobs()
+    jobs = get_all_jobs(org_id=user["org_id"])
     st.session_state["_jobs_loaded"] = True
 except Exception as e:
     st.error(f"Could not load jobs: {e}")
@@ -64,7 +68,7 @@ except Exception as e:
 if not jobs:
     st.markdown(
         '<div class="card" style="text-align:center;padding:3rem">'
-        '<div style="color:#6b7280;font-size:0.95rem">No jobs yet. Add your first role above.</div>'
+        '<div style="color:#71717a;font-size:0.95rem">No jobs yet. Add your first role above.</div>'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -84,14 +88,14 @@ else:
                     badge = f' <span class="pill pill-purple">{seniority.upper()}</span>'
                 st.markdown(
                     f'<div class="card-header" style="font-size:1.15rem">'
-                    f'{job["title"]}<span style="color:#6b7280;font-weight:400">{company_str}</span>'
+                    f'{job["title"]}<span style="color:#71717a;font-weight:400">{company_str}</span>'
                     f'{badge}</div>',
                     unsafe_allow_html=True,
                 )
 
                 if parsed:
                     st.markdown(
-                        f'<div style="color:#9ca3af;font-size:0.9rem;margin-bottom:0.75rem">'
+                        f'<div style="color:#a1a1aa;font-size:0.9rem;margin-bottom:0.75rem">'
                         f'{parsed.get("role_summary", "")}</div>',
                         unsafe_allow_html=True,
                     )

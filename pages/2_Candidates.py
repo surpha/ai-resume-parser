@@ -1,22 +1,22 @@
 """
 Candidates page — Central candidate repository with browsable profiles.
-
-Layout: Upload section at top, then a list of candidate cards.
-Clicking "View" on a card expands the full profile inline.
 """
 
 import streamlit as st
 
+from auth import require_auth
 from db import delete_candidate, get_all_candidates, insert_candidate
 from parser import parse_resume
 from styles import apply_theme
 from utils import extract_text_from_pdf, fetch_pdf_from_url
 
-st.set_page_config(page_title="Candidates | ResumeAI", page_icon="◆", layout="wide")
-apply_theme()
+st.set_page_config(page_title="Candidates - Resume Scan AI", page_icon="◆", layout="wide")
 
-st.markdown('<h1 style="font-size:2rem;margin-bottom:0">Candidates</h1>', unsafe_allow_html=True)
-st.markdown('<p class="page-subtitle">Central repository — upload, browse, and explore candidate profiles</p>',
+user = require_auth()
+apply_theme(username=user["email"], name=user["full_name"])
+
+st.markdown("# Candidates")
+st.markdown('<p class="page-subtitle">Upload, browse, and explore candidate profiles</p>',
             unsafe_allow_html=True)
 
 # ── Upload section ────────────────────────────────────────────────────────
@@ -39,7 +39,7 @@ with st.expander("Add New Candidate", expanded=not bool(st.session_state.get("_c
 
     with tab_url:
         st.markdown(
-            '<div style="color:#9ca3af;font-size:0.85rem;margin-bottom:0.5rem">'
+            '<div style="color:#a1a1aa;font-size:0.85rem;margin-bottom:0.5rem">'
             'Supports Google Drive, Dropbox, or any direct PDF link.</div>',
             unsafe_allow_html=True,
         )
@@ -65,6 +65,7 @@ with st.expander("Add New Candidate", expanded=not bool(st.session_state.get("_c
                     phone=profile.contact.phone,
                     raw_text=raw_text,
                     parsed_profile=profile.model_dump(),
+                    org_id=user["org_id"],
                 )
                 status.update(label=f"Added: {profile.contact.name}", state="complete")
                 st.rerun()
@@ -76,7 +77,7 @@ with st.expander("Add New Candidate", expanded=not bool(st.session_state.get("_c
 st.markdown("---")
 
 try:
-    candidates = get_all_candidates()
+    candidates = get_all_candidates(org_id=user["org_id"])
     st.session_state["_cands_loaded"] = True
 except Exception as e:
     st.error(f"Could not load candidates: {e}")
@@ -85,7 +86,7 @@ except Exception as e:
 if not candidates:
     st.markdown(
         '<div class="card" style="text-align:center;padding:3rem">'
-        '<div style="color:#6b7280">No candidates yet. Upload a resume above.</div></div>',
+        '<div style="color:#71717a">No candidates yet. Upload a resume above.</div></div>',
         unsafe_allow_html=True,
     )
     st.stop()
@@ -94,7 +95,7 @@ if not candidates:
 col_count, col_search = st.columns([1, 2])
 with col_count:
     st.markdown(
-        f'<div style="color:#6b7280;font-size:0.85rem;padding-top:0.5rem">'
+        f'<div style="color:#71717a;font-size:0.85rem;padding-top:0.5rem">'
         f'{len(candidates)} candidate{"s" if len(candidates) != 1 else ""}</div>',
         unsafe_allow_html=True,
     )
@@ -143,20 +144,20 @@ for cand in candidates:
 
     with col_info:
         st.markdown(
-            f'<div style="font-weight:600;color:#e2e2e5;font-size:1.05rem">{name}</div>'
-            f'<div style="color:#6b7280;font-size:0.8rem">{details_str}</div>',
+            f'<div style="font-weight:600;color:#f0f0f2;font-size:1.05rem">{name}</div>'
+            f'<div style="color:#71717a;font-size:0.8rem">{details_str}</div>',
             unsafe_allow_html=True,
         )
 
     with col_stats:
         st.markdown(
             f'<div style="display:flex;gap:1.5rem;padding-top:0.2rem">'
-            f'<div><span style="color:#a78bfa;font-weight:600">{yrs}</span>'
-            f'<span style="color:#6b7280;font-size:0.75rem"> yrs</span></div>'
-            f'<div><span style="color:#a78bfa;font-weight:600">{n_skills}</span>'
-            f'<span style="color:#6b7280;font-size:0.75rem"> skills</span></div>'
-            f'<div><span style="color:#a78bfa;font-weight:600">{n_roles}</span>'
-            f'<span style="color:#6b7280;font-size:0.75rem"> roles</span></div>'
+            f'<div><span style="color:#7c3aed;font-weight:600">{yrs}</span>'
+            f'<span style="color:#71717a;font-size:0.75rem"> yrs</span></div>'
+            f'<div><span style="color:#7c3aed;font-weight:600">{n_skills}</span>'
+            f'<span style="color:#71717a;font-size:0.75rem"> skills</span></div>'
+            f'<div><span style="color:#7c3aed;font-weight:600">{n_roles}</span>'
+            f'<span style="color:#71717a;font-size:0.75rem"> roles</span></div>'
             f'</div>',
             unsafe_allow_html=True,
         )
@@ -183,8 +184,8 @@ for cand in candidates:
         trajectory = profile.get("career_trajectory", "")
 
         st.markdown(
-            f'<div class="card" style="border-left:3px solid #a78bfa;margin-top:0.25rem">'
-            f'<div style="color:#9ca3af;font-size:0.9rem;line-height:1.6">{summary}</div>'
+            f'<div class="card" style="border-left:3px solid #7c3aed;margin-top:0.25rem">'
+            f'<div style="color:#a1a1aa;font-size:0.9rem;line-height:1.6">{summary}</div>'
             f'</div>',
             unsafe_allow_html=True,
         )
@@ -192,8 +193,8 @@ for cand in candidates:
         if trajectory:
             st.markdown(
                 f'<div class="accent-bar" style="margin-bottom:0.75rem">'
-                f'<span style="color:#6b7280;font-size:0.8rem">TRAJECTORY</span><br>'
-                f'<span style="color:#e2e2e5;font-size:0.9rem">{trajectory}</span></div>',
+                f'<span style="color:#71717a;font-size:0.8rem">TRAJECTORY</span><br>'
+                f'<span style="color:#f0f0f2;font-size:0.9rem">{trajectory}</span></div>',
                 unsafe_allow_html=True,
             )
 
@@ -240,10 +241,10 @@ for cand in candidates:
 
                 st.markdown(
                     f'<div class="accent-bar">'
-                    f'<div style="font-weight:600;color:#e2e2e5">{exp.get("title", "")}</div>'
-                    f'<div style="color:#6b7280;font-size:0.82rem">'
+                    f'<div style="font-weight:600;color:#f0f0f2">{exp.get("title", "")}</div>'
+                    f'<div style="color:#71717a;font-size:0.82rem">'
                     f'{exp.get("company", "")} · {dates}{dur}</div>'
-                    f'<div style="color:#9ca3af;font-size:0.88rem;margin-top:0.2rem">'
+                    f'<div style="color:#a1a1aa;font-size:0.88rem;margin-top:0.2rem">'
                     f'{exp.get("impact_summary", "")}</div>'
                     f'</div>',
                     unsafe_allow_html=True,

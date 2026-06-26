@@ -40,7 +40,8 @@ def get_supabase() -> Client:
 # ─── Candidates ──────────────────────────────────────────────────────────
 
 def insert_candidate(name: str, email: str | None, phone: str | None,
-                     raw_text: str, parsed_profile: dict) -> dict:
+                     raw_text: str, parsed_profile: dict,
+                     org_id: str | None = None) -> dict:
     sb = get_supabase()
     data = {
         "name": name,
@@ -48,13 +49,17 @@ def insert_candidate(name: str, email: str | None, phone: str | None,
         "phone": phone,
         "raw_text": raw_text,
         "parsed_profile": parsed_profile,
+        "org_id": org_id,
     }
     return sb.table("candidates").insert(data).execute().data[0]
 
 
-def get_all_candidates() -> list[dict]:
+def get_all_candidates(org_id: str | None = None) -> list[dict]:
     sb = get_supabase()
-    return sb.table("candidates").select("*").order("created_at", desc=True).execute().data
+    q = sb.table("candidates").select("*")
+    if org_id:
+        q = q.eq("org_id", org_id)
+    return q.order("created_at", desc=True).execute().data
 
 
 def get_candidate(candidate_id: str) -> dict | None:
@@ -71,20 +76,24 @@ def delete_candidate(candidate_id: str) -> None:
 # ─── Jobs ────────────────────────────────────────────────────────────────
 
 def insert_job(title: str, company: str | None, description: str,
-               parsed_requirements: dict) -> dict:
+               parsed_requirements: dict, org_id: str | None = None) -> dict:
     sb = get_supabase()
     data = {
         "title": title,
         "company": company,
         "description": description,
         "parsed_requirements": parsed_requirements,
+        "org_id": org_id,
     }
     return sb.table("jobs").insert(data).execute().data[0]
 
 
-def get_all_jobs() -> list[dict]:
+def get_all_jobs(org_id: str | None = None) -> list[dict]:
     sb = get_supabase()
-    return sb.table("jobs").select("*").order("created_at", desc=True).execute().data
+    q = sb.table("jobs").select("*")
+    if org_id:
+        q = q.eq("org_id", org_id)
+    return q.order("created_at", desc=True).execute().data
 
 
 def get_job(job_id: str) -> dict | None:
@@ -101,20 +110,25 @@ def delete_job(job_id: str) -> None:
 # ─── Analyses ────────────────────────────────────────────────────────────
 
 def insert_analysis(candidate_id: str, job_id: str,
-                    result: dict, fit_score: int) -> dict:
+                    result: dict, fit_score: int,
+                    org_id: str | None = None) -> dict:
     sb = get_supabase()
     data = {
         "candidate_id": candidate_id,
         "job_id": job_id,
         "result": result,
         "fit_score": fit_score,
+        "org_id": org_id,
     }
     return sb.table("analyses").insert(data).execute().data[0]
 
 
-def get_all_analyses() -> list[dict]:
+def get_all_analyses(org_id: str | None = None) -> list[dict]:
     sb = get_supabase()
-    return sb.table("analyses").select("*").order("created_at", desc=True).execute().data
+    q = sb.table("analyses").select("*")
+    if org_id:
+        q = q.eq("org_id", org_id)
+    return q.order("created_at", desc=True).execute().data
 
 
 def get_analysis(analysis_id: str) -> dict | None:
