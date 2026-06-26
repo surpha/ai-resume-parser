@@ -41,7 +41,18 @@ CREATE INDEX IF NOT EXISTS idx_candidates_org ON candidates(org_id);
 CREATE INDEX IF NOT EXISTS idx_jobs_org ON jobs(org_id);
 CREATE INDEX IF NOT EXISTS idx_analyses_org ON analyses(org_id);
 
--- 5. RLS policies
+-- 5. Helper function to get user's org_id (bypasses RLS to avoid recursion)
+CREATE OR REPLACE FUNCTION get_user_org_id()
+RETURNS UUID
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT org_id FROM profiles WHERE id = auth.uid();
+$$;
+
+-- 6. RLS policies
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
@@ -49,18 +60,18 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can view own org" ON organizations;
 CREATE POLICY "Users can view own org"
     ON organizations FOR SELECT
-    USING (id IN (SELECT org_id FROM profiles WHERE id = auth.uid()));
+    USING (id = get_user_org_id());
 
 DROP POLICY IF EXISTS "Authenticated users can create orgs" ON organizations;
 CREATE POLICY "Authenticated users can create orgs"
     ON organizations FOR INSERT
     WITH CHECK (auth.uid() IS NOT NULL);
 
--- Profiles: users can see members of their org
+-- Profiles: user can see own profile + org members
 DROP POLICY IF EXISTS "Users can view org members" ON profiles;
 CREATE POLICY "Users can view org members"
     ON profiles FOR SELECT
-    USING (org_id IN (SELECT org_id FROM profiles WHERE id = auth.uid()));
+    USING (id = auth.uid() OR org_id = get_user_org_id());
 
 DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
 CREATE POLICY "Users can insert own profile"
@@ -76,44 +87,44 @@ CREATE POLICY "Users can update own profile"
 DROP POLICY IF EXISTS "Org members can view candidates" ON candidates;
 CREATE POLICY "Org members can view candidates"
     ON candidates FOR SELECT
-    USING (org_id IN (SELECT org_id FROM profiles WHERE id = auth.uid()));
+    USING (org_id = get_user_org_id());
 
 DROP POLICY IF EXISTS "Org members can insert candidates" ON candidates;
 CREATE POLICY "Org members can insert candidates"
     ON candidates FOR INSERT
-    WITH CHECK (org_id IN (SELECT org_id FROM profiles WHERE id = auth.uid()));
+    WITH CHECK (org_id = get_user_org_id());
 
 DROP POLICY IF EXISTS "Org members can delete candidates" ON candidates;
 CREATE POLICY "Org members can delete candidates"
     ON candidates FOR DELETE
-    USING (org_id IN (SELECT org_id FROM profiles WHERE id = auth.uid()));
+    USING (org_id = get_user_org_id());
 
 -- Jobs: org-scoped
 DROP POLICY IF EXISTS "Org members can view jobs" ON jobs;
 CREATE POLICY "Org members can view jobs"
     ON jobs FOR SELECT
-    USING (org_id IN (SELECT org_id FROM profiles WHERE id = auth.uid()));
+    USING (org_id = get_user_org_id());
 
 DROP POLICY IF EXISTS "Org members can insert jobs" ON jobs;
 CREATE POLICY "Org members can insert jobs"
     ON jobs FOR INSERT
-    WITH CHECK (org_id IN (SELECT org_id FROM profiles WHERE id = auth.uid()));
+    WITH CHECK (org_id = get_user_org_id());
 
 DROP POLICY IF EXISTS "Org members can delete jobs" ON jobs;
 CREATE POLICY "Org members can delete jobs"
     ON jobs FOR DELETE
-    USING (org_id IN (SELECT org_id FROM profiles WHERE id = auth.uid()));
+    USING (org_id = get_user_org_id());
 
 -- Analyses: org-scoped
 DROP POLICY IF EXISTS "Org members can view analyses" ON analyses;
 CREATE POLICY "Org members can view analyses"
     ON analyses FOR SELECT
-    USING (org_id IN (SELECT org_id FROM profiles WHERE id = auth.uid()));
+    USING (org_id = get_user_org_id());
 
 DROP POLICY IF EXISTS "Org members can insert analyses" ON analyses;
 CREATE POLICY "Org members can insert analyses"
     ON analyses FOR INSERT
-    WITH CHECK (org_id IN (SELECT org_id FROM profiles WHERE id = auth.uid()));
+    WITH CHECK (org_id = get_user_org_id());
 
 -- 6. Grant access to anon + authenticated roles
 GRANT ALL ON organizations TO anon, authenticated;
