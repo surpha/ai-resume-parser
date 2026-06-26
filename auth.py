@@ -171,22 +171,25 @@ AUTH_CSS = """
         color: #e4e4e7 !important;
     }
 
-    /* ── OAuth buttons ────────────────────────────────── */
-    .g-btn {
+    /* ── OAuth row ─────────────────────────────────── */
+    .oauth-row {
+        display: flex; gap: 0.5rem; width: 100%;
+    }
+    .oauth-btn {
+        flex: 1;
         display: flex; align-items: center; justify-content: center;
-        gap: 0.5rem; width: 100%;
-        padding: 0.55rem 0.75rem;
+        padding: 0.6rem 0;
         background: transparent;
         border: 1px solid #27272a;
         border-radius: 6px;
-        font-family: 'Inter', sans-serif;
-        font-size: 0.82rem;
-        font-weight: 400;
-        color: #71717a;
         cursor: pointer; text-decoration: none;
         transition: all 0.1s;
     }
-    .g-btn:hover { border-color: #3f3f46; color: #e4e4e7; }
+    .oauth-btn:hover { border-color: #3f3f46; background: #18181b; }
+    .oauth-btn svg { width: 18px; height: 18px; }
+
+    /* ── Hide 'Press Enter to apply' ──────────────── */
+    .stTextInput div[data-testid="InputInstructions"] { display: none !important; }
 
     /* ── Separator ────────────────────────────────────── */
     .sep {
@@ -281,21 +284,18 @@ def _oauth_url(provider: str) -> str | None:
 
 
 def _render_oauth_buttons(prefix: str = "Continue"):
-    """Render Google, Microsoft, and Slack sign-in buttons."""
+    """Render Google, Microsoft, and Slack as icon-only buttons in a row."""
     providers = [
-        ("google", GOOGLE_ICON, "Google"),
-        ("azure", MICROSOFT_ICON, "Microsoft"),
-        ("slack", SLACK_ICON, "Slack"),
+        ("google", GOOGLE_ICON),
+        ("azure", MICROSOFT_ICON),
+        ("slack", SLACK_ICON),
     ]
-    for provider, icon, label in providers:
+    btns = ""
+    for provider, icon in providers:
         url = _oauth_url(provider)
-        disabled = "" if url else 'style="opacity:0.5;pointer-events:none"'
-        st.markdown(
-            f'<a href="{url or "#"}" class="g-btn" {disabled}>'
-            f'{icon}<span>{prefix} with {label}</span></a>',
-            unsafe_allow_html=True,
-        )
-        st.markdown('<div style="height:0.5rem"></div>', unsafe_allow_html=True)
+        disabled = '' if url else 'style="opacity:0.4;pointer-events:none"'
+        btns += f'<a href="{url or "#"}" class="oauth-btn" {disabled}>{icon}</a>'
+    st.markdown(f'<div class="oauth-row">{btns}</div>', unsafe_allow_html=True)
 
 
 # ─── Pages ────────────────────────────────────────────────────────────────
