@@ -26,6 +26,24 @@ GOOGLE_ICON = (
     '</svg>'
 )
 
+MICROSOFT_ICON = (
+    '<svg width="18" height="18" viewBox="0 0 21 21">'
+    '<rect x="1" y="1" width="9" height="9" fill="#f25022"/>'
+    '<rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>'
+    '<rect x="11" y="1" width="9" height="9" fill="#7fba00"/>'
+    '<rect x="11" y="11" width="9" height="9" fill="#ffb900"/>'
+    '</svg>'
+)
+
+SLACK_ICON = (
+    '<svg width="18" height="18" viewBox="0 0 24 24">'
+    '<path d="M5.042 15.165a2.528 2.528 0 01-2.52 2.523A2.528 2.528 0 010 15.165a2.527 2.527 0 012.522-2.52h2.52v2.52zm1.271 0a2.527 2.527 0 012.521-2.52 2.527 2.527 0 012.521 2.52v6.313A2.528 2.528 0 018.834 24a2.528 2.528 0 01-2.521-2.522v-6.313z" fill="#E01E5A"/>'
+    '<path d="M8.834 5.042a2.528 2.528 0 01-2.521-2.52A2.528 2.528 0 018.834 0a2.528 2.528 0 012.521 2.522v2.52H8.834zm0 1.271a2.528 2.528 0 012.521 2.521 2.528 2.528 0 01-2.521 2.521H2.522A2.528 2.528 0 010 8.834a2.528 2.528 0 012.522-2.521h6.312z" fill="#36C5F0"/>'
+    '<path d="M18.956 8.834a2.528 2.528 0 012.522-2.521A2.528 2.528 0 0124 8.834a2.528 2.528 0 01-2.522 2.521h-2.522V8.834zm-1.27 0a2.528 2.528 0 01-2.522 2.521 2.528 2.528 0 01-2.522-2.521V2.522A2.528 2.528 0 0115.164 0a2.528 2.528 0 012.522 2.522v6.312z" fill="#2EB67D"/>'
+    '<path d="M15.164 18.956a2.528 2.528 0 012.522 2.522A2.528 2.528 0 0115.164 24a2.528 2.528 0 01-2.522-2.522v-2.522h2.522zm0-1.27a2.528 2.528 0 01-2.522-2.522 2.528 2.528 0 012.522-2.522h6.314A2.528 2.528 0 0124 15.164a2.528 2.528 0 01-2.522 2.522h-6.314z" fill="#ECB22E"/>'
+    '</svg>'
+)
+
 # ─── CSS ──────────────────────────────────────────────────────────────────
 
 AUTH_CSS = """
@@ -272,9 +290,32 @@ def _get_org(org_id: str) -> dict | None:
     return r[0] if r else None
 
 
-def _google_oauth_url() -> str | None:
+def _oauth_url(provider: str) -> str | None:
+    """Build Supabase OAuth URL for a given provider (google, azure, slack)."""
     url = os.getenv("SUPABASE_URL")
-    return f"{url}/auth/v1/authorize?provider=google&redirect_to=http://localhost:8502" if url else None
+    if not url:
+        return None
+    # Use app URL in production, localhost in dev
+    redirect = os.getenv("APP_URL", "http://localhost:8502")
+    return f"{url}/auth/v1/authorize?provider={provider}&redirect_to={redirect}"
+
+
+def _render_oauth_buttons(prefix: str = "Continue"):
+    """Render Google, Microsoft, and Slack sign-in buttons."""
+    providers = [
+        ("google", GOOGLE_ICON, "Google"),
+        ("azure", MICROSOFT_ICON, "Microsoft"),
+        ("slack", SLACK_ICON, "Slack"),
+    ]
+    for provider, icon, label in providers:
+        url = _oauth_url(provider)
+        disabled = "" if url else 'style="opacity:0.5;pointer-events:none"'
+        st.markdown(
+            f'<a href="{url or "#"}" class="g-btn" {disabled}>'
+            f'{icon}<span>{prefix} with {label}</span></a>',
+            unsafe_allow_html=True,
+        )
+        st.markdown('<div style="height:0.5rem"></div>', unsafe_allow_html=True)
 
 
 # ─── Pages ────────────────────────────────────────────────────────────────
@@ -307,13 +348,8 @@ def _show_login():
     # Separator
     st.markdown('<div class="sep">or</div>', unsafe_allow_html=True)
 
-    # Google
-    gurl = _google_oauth_url()
-    st.markdown(
-        f'<a href="{gurl or "#"}" class="g-btn" {"" if gurl else "style=\"opacity:0.5;pointer-events:none\""}>'
-        f'{GOOGLE_ICON}<span>Continue with Google</span></a>',
-        unsafe_allow_html=True,
-    )
+    # Social OAuth buttons
+    _render_oauth_buttons("Continue")
 
     # Switch to signup
     st.markdown('<div class="auth-switch">', unsafe_allow_html=True)
@@ -370,12 +406,8 @@ def _show_signup():
 
     st.markdown('<div class="sep">or</div>', unsafe_allow_html=True)
 
-    gurl = _google_oauth_url()
-    st.markdown(
-        f'<a href="{gurl or "#"}" class="g-btn" {"" if gurl else "style=\"opacity:0.5;pointer-events:none\""}>'
-        f'{GOOGLE_ICON}<span>Sign up with Google</span></a>',
-        unsafe_allow_html=True,
-    )
+    # Social OAuth buttons
+    _render_oauth_buttons("Sign up")
 
     st.markdown('<div class="auth-switch">', unsafe_allow_html=True)
     if st.button("Already have an account? Log in", key="to_login", use_container_width=True):
