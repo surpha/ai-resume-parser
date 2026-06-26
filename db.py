@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import os
 
+import streamlit as st
 from dotenv import load_dotenv
 from supabase import Client, create_client
 
@@ -23,15 +24,26 @@ load_dotenv()
 _client: Client | None = None
 
 
+def _get_env(key: str) -> str | None:
+    """Get env var from os.environ or st.secrets (Streamlit Cloud)."""
+    val = os.getenv(key)
+    if val:
+        return val
+    try:
+        return st.secrets.get(key)
+    except Exception:
+        return None
+
+
 def get_supabase() -> Client:
     """Lazy-initialize and return the Supabase client (service role bypasses RLS)."""
     global _client
     if _client is None:
-        url = os.getenv("SUPABASE_URL")
-        key = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_KEY")
+        url = _get_env("SUPABASE_URL")
+        key = _get_env("SUPABASE_SERVICE_KEY") or _get_env("SUPABASE_KEY")
         if not url or not key:
             raise ValueError(
-                "SUPABASE_URL and SUPABASE_KEY must be set in .env"
+                "SUPABASE_URL and SUPABASE_KEY must be set in .env or st.secrets"
             )
         _client = create_client(url, key)
     return _client
